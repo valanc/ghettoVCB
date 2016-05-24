@@ -1092,14 +1092,25 @@ ghettoVCB() {
                                     tail -f "${VMDK_OUTPUT}" &
                                     TAIL_PID=$!
 
-                                    ADAPTER_FORMAT=$(grep -i "ddb.adapterType" "${SOURCE_VMDK}" | awk -F "=" '{print $2}' | sed -e 's/^[[:blank:]]*//;s/[[:blank:]]*$//;s/"//g')
-
-                                    if  [[ -z "${FORMAT_OPTION}" ]] ; then
-                                        logger "debug" "${VMKFSTOOLS_CMD} -i \"${SOURCE_VMDK}\" -a \"${ADAPTER_FORMAT}\" \"${DESTINATION_VMDK}\""
-                                        ${VMKFSTOOLS_CMD} -i "${SOURCE_VMDK}" -a "${ADAPTER_FORMAT}" "${DESTINATION_VMDK}" > "${VMDK_OUTPUT}" 2>&1                  
+                                    if [[ "${VER}" == "6" ]] ; then
+                                        # Option --adaptertype is deprecated 
+                                        if  [[ -z "${FORMAT_OPTION}" ]] ; then
+                                            logger "debug" "${VMKFSTOOLS_CMD} -i \"${SOURCE_VMDK}\" \"${DESTINATION_VMDK}\""
+                                            ${VMKFSTOOLS_CMD} -i "${SOURCE_VMDK}" "${DESTINATION_VMDK}" > "${VMDK_OUTPUT}" 2>&1                  
+                                        else
+                                            logger "debug" "${VMKFSTOOLS_CMD} -i \"${SOURCE_VMDK}\" -d \"${FORMAT_OPTION}\" \"${DESTINATION_VMDK}\""
+                                            ${VMKFSTOOLS_CMD} -i "${SOURCE_VMDK}" -d "${FORMAT_OPTION}" "${DESTINATION_VMDK}" > "${VMDK_OUTPUT}" 2>&1
+                                        fi
                                     else
-                                        logger "debug" "${VMKFSTOOLS_CMD} -i \"${SOURCE_VMDK}\" -a \"${ADAPTER_FORMAT}\" -d \"${FORMAT_OPTION}\" \"${DESTINATION_VMDK}\""
-                                        ${VMKFSTOOLS_CMD} -i "${SOURCE_VMDK}" -a "${ADAPTER_FORMAT}" -d "${FORMAT_OPTION}" "${DESTINATION_VMDK}" > "${VMDK_OUTPUT}" 2>&1
+                                        ADAPTER_FORMAT=$(grep -i "ddb.adapterType" "${SOURCE_VMDK}" | awk -F "=" '{print $2}' | sed -e 's/^[[:blank:]]*//;s/[[:blank:]]*$//;s/"//g')
+
+                                        if  [[ -z "${FORMAT_OPTION}" ]] ; then
+                                            logger "debug" "${VMKFSTOOLS_CMD} -i \"${SOURCE_VMDK}\" -a \"${ADAPTER_FORMAT}\" \"${DESTINATION_VMDK}\""
+                                            ${VMKFSTOOLS_CMD} -i "${SOURCE_VMDK}" -a "${ADAPTER_FORMAT}" "${DESTINATION_VMDK}" > "${VMDK_OUTPUT}" 2>&1                  
+                                        else
+                                            logger "debug" "${VMKFSTOOLS_CMD} -i \"${SOURCE_VMDK}\" -a \"${ADAPTER_FORMAT}\" -d \"${FORMAT_OPTION}\" \"${DESTINATION_VMDK}\""
+                                            ${VMKFSTOOLS_CMD} -i "${SOURCE_VMDK}" -a "${ADAPTER_FORMAT}" -d "${FORMAT_OPTION}" "${DESTINATION_VMDK}" > "${VMDK_OUTPUT}" 2>&1
+                                        fi
                                     fi
 
                                     VMDK_EXIT_CODE=$?
